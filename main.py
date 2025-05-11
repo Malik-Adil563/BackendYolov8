@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from ultralytics import YOLO
-from PIL import Image
+import cv2
 import numpy as np
 import torch
 
@@ -26,13 +26,18 @@ def detect_wall():
 
         file = request.files['image']
         
-        # Open the image, convert to RGB, and resize it to a smaller resolution
-        image = Image.open(file.stream).convert('RGB')
-        image = image.resize((640, 480))  # Resize the image to reduce memory footprint
-        img = np.array(image)
+        # Read the image using OpenCV
+        img_array = np.frombuffer(file.read(), np.uint8)  # Convert to numpy array from the file buffer
+        image = cv2.imdecode(img_array, cv2.IMREAD_COLOR)  # Decode image as color (RGB)
+        
+        # Resize the image to reduce memory footprint
+        image_resized = cv2.resize(image, (640, 480))  # Resize the image (you can adjust this size)
+        
+        # Convert image to RGB for the YOLO model (OpenCV uses BGR by default)
+        img_rgb = cv2.cvtColor(image_resized, cv2.COLOR_BGR2RGB)
 
         # Convert image to a tensor and move to the same device as the model
-        img_tensor = torch.from_numpy(img).float().to(device)
+        img_tensor = torch.from_numpy(img_rgb).float().to(device)
         img_tensor = img_tensor.permute(2, 0, 1).unsqueeze(0)  # Convert to (C, H, W) and add batch dimension
 
         # Run the model to detect walls
