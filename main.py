@@ -5,7 +5,8 @@ from PIL import Image
 import numpy as np
 
 # Load the trained YOLOv8 model
-model = YOLO("runs/detect/train/weights/best.pt")  # adjust if needed
+model = YOLO()
+model = YOLO("runs/detect/train6/weights/best.pt")  # adjust if needed
 
 app = Flask(__name__)
 CORS(app)
