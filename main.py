@@ -6,7 +6,7 @@ import numpy as np
 import torch
 
 # Load the trained YOLOv8 model (ensure you're using the smallest version like yolov8n.pt)
-model = YOLO("runs/detect/train6/weights/best.pt")  # Update if your path is different
+model = YOLO("runs/detect/train2/weights/best.pt")  # Update if your path is different
 
 # Move the model to GPU if available, otherwise use CPU
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
