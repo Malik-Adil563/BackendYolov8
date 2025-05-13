@@ -24,7 +24,7 @@ resnet = resnet.to(device)
 resnet.eval()
 
 # Load saved wall features from .pt
-feature_file_path = os.path.join("dataset", "resnet50_features.pt")
+feature_file_path = os.path.join("FeatureEctractor", "resnet50_features.pt")
 saved_features = torch.load(feature_file_path, map_location=device)["features"]  # shape: [N, 2048]
 
 # Image preprocessing for ResNet
