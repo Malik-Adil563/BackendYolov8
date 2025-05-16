@@ -55,7 +55,7 @@ def detect_wall():
         img_tensor = img_tensor / 255.0  # Normalize here explicitly
 
         # Run YOLO detection with confidence threshold
-        results = model(img_tensor, conf=0.92)
+        results = model(img_tensor, conf=0.95)
 
         # Check if "wall" was detected
         detected_wall = False
@@ -64,7 +64,7 @@ def detect_wall():
                 class_id = int(box.cls[0])
                 class_name = model.names[class_id]
                 if "wall" in class_name.lower():
-                    print("✅ Wall detected with confidence ≥ 0.92")
+                    print("✅ Wall detected with confidence ≥ 0.95")
                     detected_wall = True
                     break
             if detected_wall:
