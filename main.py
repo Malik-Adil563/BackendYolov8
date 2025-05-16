@@ -4,16 +4,23 @@ from ultralytics import YOLO
 from PIL import Image
 import numpy as np
 import torch
+import os
+from datetime import datetime
 
-# Load the trained YOLOv8 model (ensure you're using the smallest version like yolov8n.pt)
-model = YOLO("runs/detect/train3/weights/best.pt")  # Update if your path is different
+# Load the trained YOLOv8 model
+model = YOLO("runs/detect/train3/weights/best.pt")  # Update path if needed
 
-# Move the model to GPU if available, otherwise use CPU
+# Move the model to GPU if available
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 model.to(device)
 
+# Flask app
 app = Flask(__name__)
 CORS(app)
+
+# Directory to save uploaded images
+SAVE_DIR = "saved_uploads"
+os.makedirs(SAVE_DIR, exist_ok=True)
 
 @app.route("/")
 def home():
@@ -22,16 +29,23 @@ def home():
 @app.route('/detect-wall', methods=['POST'])
 def detect_wall():
     print("📸 Request received for wall detection")
-    
+
     try:
         if 'image' not in request.files:
             print("❌ No image in request")
             return jsonify({"error": "No image uploaded"}), 400
 
         file = request.files['image']
-        
-        # Open the image, convert to RGB, and resize it to reduce memory footprint
-        image = Image.open(file.stream).convert('RGB')
+
+        # Save image with timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"scene_{timestamp}.jpg"
+        filepath = os.path.join(SAVE_DIR, filename)
+        file.save(filepath)
+        print(f"📥 Image saved to: {filepath}")
+
+        # Open and resize image
+        image = Image.open(filepath).convert('RGB')
         image = image.resize((640, 480))
         img = np.array(image)
 
@@ -39,17 +53,17 @@ def detect_wall():
         img_tensor = torch.from_numpy(img).float().to(device)
         img_tensor = img_tensor.permute(2, 0, 1).unsqueeze(0)
 
-        # Run detection with confidence threshold set to 0.017 (1.7%)
+        # Run YOLO detection with confidence threshold
         results = model(img_tensor, conf=0.95)
 
-        # Check for wall detection
+        # Check if "wall" was detected
         detected_wall = False
         for result in results:
             for box in result.boxes:
                 class_id = int(box.cls[0])
                 class_name = model.names[class_id]
                 if "wall" in class_name.lower():
-                    print("✅ Wall detected with confidence 0.95")
+                    print("✅ Wall detected with confidence ≥ 0.95")
                     detected_wall = True
                     break
 
