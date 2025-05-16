@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from ultralytics import YOLO
 from PIL import Image
@@ -67,11 +67,19 @@ def detect_wall():
                     detected_wall = True
                     break
 
-        return jsonify({"wallDetected": detected_wall})
+        return jsonify({
+            "wallDetected": detected_wall,
+            "imageDownloadUrl": f"/downloads/{filename}"
+        })
 
     except Exception as e:
         print("⚠️ Error:", str(e))
         return jsonify({"error": str(e)}), 500
+
+# ✅ Route to serve the saved image
+@app.route('/downloads/<path:filename>', methods=['GET'])
+def download_image(filename):
+    return send_from_directory(SAVE_DIR, filename, as_attachment=True)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=3000)
