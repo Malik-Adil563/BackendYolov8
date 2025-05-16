@@ -14,7 +14,7 @@ model = YOLO("runs/detect/train3/weights/best.pt")  # Update path if needed
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 model.to(device)
 
-# Flask app
+# Flask app setup
 app = Flask(__name__)
 CORS(app)
 
@@ -44,15 +44,14 @@ def detect_wall():
         file.save(filepath)
         print(f"📥 Image saved to: {filepath}")
 
-        # Open and resize image
+        # Open the image and convert to RGB
         image = Image.open(filepath).convert('RGB')
-        image = image.resize((640, 480))
         img = np.array(image)
 
         # Convert image to tensor and normalize to [0,1]
         img_tensor = torch.from_numpy(img).float().to(device)
         img_tensor = img_tensor.permute(2, 0, 1).unsqueeze(0)
-        img_tensor = img_tensor / 255.0  # Normalize here explicitly
+        img_tensor = img_tensor / 255.0  # Normalize
 
         # Run YOLO detection with confidence threshold
         results = model(img_tensor, conf=0.95)
@@ -79,7 +78,6 @@ def detect_wall():
         print("⚠️ Error:", str(e))
         return jsonify({"error": str(e)}), 500
 
-# Route to serve the saved image
 @app.route('/downloads/<path:filename>', methods=['GET'])
 def download_image(filename):
     return send_from_directory(SAVE_DIR, filename, as_attachment=True)
