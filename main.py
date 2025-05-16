@@ -2,23 +2,21 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from ultralytics import YOLO
 from PIL import Image
-import numpy as np
 import torch
 import os
 from datetime import datetime
 
 # Load the trained YOLOv8 model
-model = YOLO("runs/detect/train3/weights/best.pt")  # Update path if needed
+model = YOLO("runs/detect/train3/weights/best.pt")
 
-# Move the model to GPU if available
+# Use GPU if available
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 model.to(device)
 
-# Flask app setup
+# Flask app
 app = Flask(__name__)
 CORS(app)
 
-# Directory to save uploaded images
 SAVE_DIR = "saved_uploads"
 os.makedirs(SAVE_DIR, exist_ok=True)
 
@@ -37,24 +35,15 @@ def detect_wall():
 
         file = request.files['image']
 
-        # Save image with timestamp
+        # Save uploaded image
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"scene_{timestamp}.jpg"
         filepath = os.path.join(SAVE_DIR, filename)
         file.save(filepath)
         print(f"📥 Image saved to: {filepath}")
 
-        # Open the image and convert to RGB
-        image = Image.open(filepath).convert('RGB')
-        img = np.array(image)
-
-        # Convert image to tensor and normalize to [0,1]
-        img_tensor = torch.from_numpy(img).float().to(device)
-        img_tensor = img_tensor.permute(2, 0, 1).unsqueeze(0)
-        img_tensor = img_tensor / 255.0  # Normalize
-
-        # Run YOLO detection with confidence threshold
-        results = model(img_tensor, conf=0.90)
+        # Run YOLOv8 detection (let it handle preprocessing)
+        results = model(filepath, conf=0.90)
 
         # Check if "wall" was detected
         detected_wall = False
