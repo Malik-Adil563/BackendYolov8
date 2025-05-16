@@ -40,7 +40,7 @@ def detect_wall():
         img_tensor = img_tensor.permute(2, 0, 1).unsqueeze(0)
 
         # Run detection with confidence threshold set to 0.017 (1.7%)
-        results = model(img_tensor, conf=0.8)
+        results = model(img_tensor, conf=0.95)
 
         # Check for wall detection
         detected_wall = False
@@ -49,7 +49,7 @@ def detect_wall():
                 class_id = int(box.cls[0])
                 class_name = model.names[class_id]
                 if "wall" in class_name.lower():
-                    print("✅ Wall detected with confidence 0.8")
+                    print("✅ Wall detected with confidence 0.95")
                     detected_wall = True
                     break
 
