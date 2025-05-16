@@ -15,6 +15,10 @@ model.to(device)
 app = Flask(__name__)
 CORS(app)
 
+@app.route("/")
+def home():
+    return {"status": "Python backend running"}
+
 @app.route('/detect-wall', methods=['POST'])
 def detect_wall():
     print("📸 Request received for wall detection")
@@ -26,26 +30,26 @@ def detect_wall():
 
         file = request.files['image']
         
-        # Open the image, convert to RGB, and resize it to a smaller resolution
+        # Open the image, convert to RGB, and resize it to reduce memory footprint
         image = Image.open(file.stream).convert('RGB')
-        image = image.resize((640, 480))  # Resize the image to reduce memory footprint
+        image = image.resize((640, 480))
         img = np.array(image)
 
-        # Convert image to a tensor and move to the same device as the model
+        # Convert image to tensor
         img_tensor = torch.from_numpy(img).float().to(device)
-        img_tensor = img_tensor.permute(2, 0, 1).unsqueeze(0)  # Convert to (C, H, W) and add batch dimension
+        img_tensor = img_tensor.permute(2, 0, 1).unsqueeze(0)
 
-        # Run the model to detect walls
-        results = model(img_tensor)
+        # Run detection with confidence threshold set to 0.017 (1.7%)
+        results = model(img_tensor, conf=0.017)
 
-        # Process the results
+        # Check for wall detection
         detected_wall = False
         for result in results:
             for box in result.boxes:
                 class_id = int(box.cls[0])
                 class_name = model.names[class_id]
                 if "wall" in class_name.lower():
-                    print("✅ Wall detected")
+                    print("✅ Wall detected with confidence")
                     detected_wall = True
                     break
 
