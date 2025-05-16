@@ -40,7 +40,7 @@ def detect_wall():
         img_tensor = img_tensor.permute(2, 0, 1).unsqueeze(0)
 
         # Run detection with confidence threshold set to 0.017 (1.7%)
-        results = model(img_tensor, conf=0.05)
+        results = model(img_tensor, conf=0.5)
 
         # Check for wall detection
         detected_wall = False
