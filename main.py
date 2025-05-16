@@ -49,9 +49,10 @@ def detect_wall():
         image = image.resize((640, 480))
         img = np.array(image)
 
-        # Convert image to tensor
+        # Convert image to tensor and normalize to [0,1]
         img_tensor = torch.from_numpy(img).float().to(device)
         img_tensor = img_tensor.permute(2, 0, 1).unsqueeze(0)
+        img_tensor = img_tensor / 255.0  # Normalize here explicitly
 
         # Run YOLO detection with confidence threshold
         results = model(img_tensor, conf=0.92)
@@ -66,6 +67,8 @@ def detect_wall():
                     print("✅ Wall detected with confidence ≥ 0.92")
                     detected_wall = True
                     break
+            if detected_wall:
+                break
 
         return jsonify({
             "wallDetected": detected_wall,
@@ -76,7 +79,7 @@ def detect_wall():
         print("⚠️ Error:", str(e))
         return jsonify({"error": str(e)}), 500
 
-# ✅ Route to serve the saved image
+# Route to serve the saved image
 @app.route('/downloads/<path:filename>', methods=['GET'])
 def download_image(filename):
     return send_from_directory(SAVE_DIR, filename, as_attachment=True)
