@@ -43,7 +43,7 @@ def detect_wall():
         print(f"📥 Image saved to: {filepath}")
 
         # Run YOLOv8 detection (let it handle preprocessing)
-        results = model(filepath, conf=0.90)
+        results = model(filepath, conf=0.95)
 
         # Check if "wall" was detected
         detected_wall = False
@@ -52,7 +52,7 @@ def detect_wall():
                 class_id = int(box.cls[0])
                 class_name = model.names[class_id]
                 if "wall" in class_name.lower():
-                    print("✅ Wall detected with confidence ≥ 0.90")
+                    print("✅ Wall detected with confidence ≥ 0.95")
                     detected_wall = True
                     break
             if detected_wall:
